@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Properties of a Mind</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bdr: rgba(255,255,255,0.07);
+      --dim: #4b5563;
+    }
+
+    body {
+      background: #070710;
+      color: #e5e7eb;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      min-height: 100vh;
+      padding: 3rem 2rem 6rem;
+    }
+
+    /* ── Page header ───────────────────────────────────────────────── */
+    .page-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 3.5rem;
+    }
+    .page-title {
+      font-size: 1.85rem;
+      font-weight: 400;
+      letter-spacing: 0.07em;
+      color: #f3f4f6;
+      margin-bottom: 0.55rem;
+    }
+    .page-subtitle {
+      font-family: 'Courier New', monospace;
+      font-size: 0.68rem;
+      color: #374151;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .page-framing {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.8;
+    }
+
+    /* ── Scenario header ───────────────────────────────────────────── */
+    .scenario-header {
+      max-width: 880px;
+      margin: 0 auto 1.5rem;
+    }
+    .scenario-title {
+      font-size: 1.05rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #d1d5db;
+      margin-bottom: 0.5rem;
+    }
+    .scenario-caption {
+      font-size: 0.82rem;
+      color: #6b7280;
+      font-style: italic;
+      line-height: 1.7;
+    }
+
+    /* ── Section divider ───────────────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      max-width: 880px;
+      margin: 5rem auto;
+      gap: 1.2rem;
+      color: #374151;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--bdr);
+    }
+    .section-divider span {
+      font-family: 'Courier New', monospace;
+      font-size: 0.57rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Two-column layout ─────────────────────────────────────────── */
+    .sim-layout {
+      display: flex;
+      gap: 1.75rem;
+      max-width: 880px;
+      margin: 0 auto;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .sim-col {
+      flex: 1;
+      min-width: 0;
+      background: #0a0a1c;
+      border-radius: 6px;
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+    .col-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #374151;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .grid-wrap {
+      display: flex;
+      justify-content: center;
+    }
+    .grid-wrap canvas {
+      display: block;
+      cursor: crosshair;
+      /* logical size set by JS; physical size = logical × dpr */
+    }
+    canvas.nav-canvas  { width: 368px; height: 368px; }
+    canvas.arith-canvas{ width: 368px; height: 200px; }
+
+    /* ── Caption ───────────────────────────────────────────────────── */
+    .caption {
+      font-family: 'Courier New', monospace;
+      font-size: 0.68rem;
+      color: #4b5563;
+      min-height: 3em;
+      line-height: 1.6;
+      text-align: center;
+      margin-top: 0.85rem;
+    }
+
+    /* ── Slider ────────────────────────────────────────────────────── */
+    .slider-section { margin-top: 1.25rem; }
+    .slider-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #374151;
+      text-align: center;
+      margin-bottom: 0.65rem;
+    }
+    .slider-track {
+      position: relative;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+    }
+    .slider-rail {
+      position: absolute;
+      left: 12px; right: 12px;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+    .slider-stops {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      z-index: 1;
+    }
+    .slider-stop {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: #0a0a1c;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .slider-stop.active-human  { background: #f59e0b; border-color: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+    .slider-stop.active-machine{ background: #60a5fa; border-color: #60a5fa; box-shadow: 0 0 6px rgba(96,165,250,0.5); }
+    .slider-names {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.45rem;
+    }
+    .slider-name {
+      font-family: 'Courier New', monospace;
+      font-size: 0.58rem;
+      color: #374151;
+      text-align: center;
+      width: 33.33%;
+      cursor: pointer;
+      transition: color 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .slider-name:first-child { text-align: left; }
+    .slider-name:last-child  { text-align: right; }
+    .slider-name.active { color: #9ca3af; }
+
+    /* ── Pills ─────────────────────────────────────────────────────── */
+    .pills {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1.1rem;
+    }
+    .pill {
+      font-family: 'Courier New', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .human-col .pill.filled  { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4);  color: #d97706; }
+    .human-col .pill.empty   { background: transparent; border-color: rgba(245,158,11,0.12); color: #374151; }
+    .machine-col .pill.filled { background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.35); color: #3b82f6; }
+    .machine-col .pill.empty  { background: transparent; border-color: rgba(96,165,250,0.10); color: #374151; }
+
+    /* ── Bottom panel ──────────────────────────────────────────────── */
+    .bottom-panel {
+      max-width: 880px;
+      margin: 1.75rem auto 0;
+      background: #0a0a1c;
+      border-radius: 6px;
+      padding: 1.25rem 1.6rem;
+    }
+    .bottom-text {
+      font-family: 'Courier New', monospace;
+      font-size: 0.73rem;
+      color: #6b7280;
+      line-height: 1.85;
+      min-height: 3.5em;
+    }
+
+    /* ── Pull quote ────────────────────────────────────────────────── */
+    .pull-quote {
+      border-left: 2px solid var(--bdr);
+      padding-left: 1.2rem;
+      font-style: italic;
+      color: var(--dim);
+      font-size: 0.78rem;
+      line-height: 1.9;
+      margin: 1.4rem auto 0;
+      max-width: 880px;
+    }
+    .pull-quote .attr {
+      display: block;
+      font-style: normal;
+      font-size: 0.64rem;
+      letter-spacing: 0.08em;
+      color: #374151;
+      margin-top: 0.6rem;
+    }
+
+    /* ── Bad instruction button (Scenario III) ─────────────────────── */
+    .bad-btn {
+      display: block;
+      margin: 0.85rem auto 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.59rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #d97706;
+      background: rgba(180,120,30,0.08);
+      border: 1px solid rgba(180,120,30,0.22);
+      border-radius: 3px;
+      padding: 0.38rem 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .bad-btn:hover:not(:disabled) { background: rgba(180,120,30,0.16); border-color: rgba(180,120,30,0.4); }
+    .bad-btn:disabled { opacity: 0.28; cursor: default; }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <h1 class="page-title">Three Properties of a Mind</h1>
+    <p class="page-subtitle">Initiative — Discipline — Interference. After Hodges, Alan Turing: The Enigma, Chapter 6 'Mercury Delayed'.</p>
+    <p class="page-framing">Turing argued in <em>Intelligent Machinery</em> (1948) that initiative, discipline, and interference are the three properties that distinguish a merely mechanical system from a potentially intelligent one. Hodges reconstructs this argument in Chapter 6. Move the sliders to explore the space of possible minds.</p>
+  </header>
+
+  <!-- ═══════════════ SCENARIO I ═══════════════ -->
+  <div class="scenario-header">
+    <h2 class="scenario-title">Scenario I — Navigation under disruption</h2>
+    <p class="scenario-caption"><em>Can the agent find a new route when the planned path is blocked? This tests whether initiative is present — whether the agent can act without being told.</em></p>
+  </div>
+
+  <div class="sim-layout">
+    <div class="sim-col human-col" id="col-h1">
+      <div class="col-label">Human</div>
+      <div class="grid-wrap"><canvas id="cv-h1"></canvas></div>
+      <div class="caption" id="cap-h1"></div>
+      <div class="slider-section">
+        <div class="slider-label">Configuration</div>
+        <div class="slider-track">
+          <div class="slider-rail"></div>
+          <div class="slider-stops">
+            <div class="slider-stop" data-sc="1" data-agent="human" data-stop="1"></div>
+            <div class="slider-stop" data-sc="1" data-agent="human" data-stop="2"></div>
+            <div class="slider-stop" data-sc="1" data-agent="human" data-stop="3"></div>
+          </div>
+        </div>
+        <div class="slider-names">
+          <span class="slider-name" data-sc="1" data-agent="human" data-stop="1">Mechanical</span>
+          <span class="slider-name" data-sc="1" data-agent="human" data-stop="2">Trainable</span>
+          <span class="slider-name" data-sc="1" data-agent="human" data-stop="3">Minded</span>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="h1-init">Initiative</span>
+        <span class="pill" id="h1-disc">Discipline</span>
+        <span class="pill" id="h1-itr">Interference</span>
+      </div>
+    </div>
+
+    <div class="sim-col machine-col" id="col-m1">
+      <div class="col-label">Machine</div>
+      <div class="grid-wrap"><canvas id="cv-m1"></canvas></div>
+      <div class="caption" id="cap-m1"></div>
+      <div class="slider-section">
+        <div class="slider-label">Configuration</div>
+        <div class="slider-track">
+          <div class="slider-rail"></div>
+          <div class="slider-stops">
+            <div class="slider-stop" data-sc="1" data-agent="machine" data-stop="1"></div>
+            <div class="slider-stop" data-sc="1" data-agent="machine" data-stop="2"></div>
+            <div class="slider-stop" data-sc="1" data-agent="machine" data-stop="3"></div>
+          </div>
+        </div>
+        <div class="slider-names">
+          <span class="slider-name" data-sc="1" data-agent="machine" data-stop="1">Mechanical</span>
+          <span class="slider-name" data-sc="1" data-agent="machine" data-stop="2">Trainable</span>
+          <span class="slider-name" data-sc="1" data-agent="machine" data-stop="3">Minded</span>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="m1-init">Initiative</span>
+        <span class="pill" id="m1-disc">Discipline</span>
+        <span class="pill" id="m1-itr">Interference</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panel"><div class="bottom-text" id="btxt-1"></div></div>
+
+  <blockquote class="pull-quote">
+    "The training of the human child depends largely on a system of rewards and punishments, and this suggests that it ought to be possible to carry through the organising with only two interfering inputs, one for 'pleasure' or 'reward' (R) and the other for 'pain' or 'punishment' (P)."
+    <span class="attr">— Hodges, Alan Turing: The Enigma, p. 478</span>
+  </blockquote>
+
+  <!-- ═══════════════ DIVIDER ═══════════════ -->
+  <div class="section-divider"><span>Scenario II — Initiative in Arithmetic</span></div>
+
+  <!-- ═══════════════ SCENARIO II ═══════════════ -->
+  <div class="scenario-header">
+    <h2 class="scenario-title">Scenario II — Initiative in arithmetic</h2>
+    <p class="scenario-caption"><em>Gauss, as a child, was asked to sum a sequence of numbers. He found a shortcut no one had taught him. Turing used this as his example of initiative — doing something correct that was not in the instructions.</em></p>
+  </div>
+
+  <div class="sim-layout">
+    <div class="sim-col human-col" id="col-h2">
+      <div class="col-label">Human</div>
+      <div class="grid-wrap"><canvas id="cv-h2"></canvas></div>
+      <div class="caption" id="cap-h2"></div>
+      <div class="slider-section">
+        <div class="slider-label">Configuration</div>
+        <div class="slider-track">
+          <div class="slider-rail"></div>
+          <div class="slider-stops">
+            <div class="slider-stop" data-sc="2" data-agent="human" data-stop="1"></div>
+            <div class="slider-stop" data-sc="2" data-agent="human" data-stop="2"></div>
+            <div class="slider-stop" data-sc="2" data-agent="human" data-stop="3"></div>
+          </div>
+        </div>
+        <div class="slider-names">
+          <span class="slider-name" data-sc="2" data-agent="human" data-stop="1">Mechanical</span>
+          <span class="slider-name" data-sc="2" data-agent="human" data-stop="2">Trainable</span>
+          <span class="slider-name" data-sc="2" data-agent="human" data-stop="3">Minded</span>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="h2-init">Initiative</span>
+        <span class="pill" id="h2-disc">Discipline</span>
+        <span class="pill" id="h2-itr">Interference</span>
+      </div>
+    </div>
+
+    <div class="sim-col machine-col" id="col-m2">
+      <div class="col-label">Machine</div>
+      <div class="grid-wrap"><canvas id="cv-m2"></canvas></div>
+      <div class="caption" id="cap-m2"></div>
+      <div class="slider-section">
+        <div class="slider-label">Configuration</div>
+        <div class="slider-track">
+          <div class="slider-rail"></div>
+          <div class="slider-stops">
+            <div class="slider-stop" data-sc="2" data-agent="machine" data-stop="1"></div>
+            <div class="slider-stop" data-sc="2" data-agent="machine" data-stop="2"></div>
+            <div class="slider-stop" data-sc="2" data-agent="machine" data-stop="3"></div>
+          </div>
+        </div>
+        <div class="slider-names">
+          <span class="slider-name" data-sc="2" data-agent="machine" data-stop="1">Mechanical</span>
+          <span class="slider-name" data-sc="2" data-agent="machine" data-stop="2">Trainable</span>
+          <span class="slider-name" data-sc="2" data-agent="machine" data-stop="3">Minded</span>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="m2-init">Initiative</span>
+        <span class="pill" id="m2-disc">Discipline</span>
+        <span class="pill" id="m2-itr">Interference</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panel"><div class="bottom-text" id="btxt-2"></div></div>
+
+  <blockquote class="pull-quote">
+    "It is related that the infant Gauss was asked at school to do the addition 15+18+21+...+54 and that he immediately wrote down 483, presumably having calculated it as (15+54)(54−12)/2,3... One can imagine a situation where the children were given a number of additions to do, of which the first 5 were all arithmetic progressions, but the 6th was say 23+34+45...+100+112+122...+199. Gauss might have given the answer to this as if it were an arithmetic progression, not having noticed that the 9th term was 112 instead of 111. This would be a definite mistake, which the less intelligent children would not have been likely to make."
+    <span class="attr">— Hodges, Alan Turing: The Enigma, p. 476</span>
+  </blockquote>
+
+  <!-- ═══════════════ DIVIDER ═══════════════ -->
+  <div class="section-divider"><span>Scenario III — The Obedience Failure</span></div>
+
+  <!-- ═══════════════ SCENARIO III ═══════════════ -->
+  <div class="scenario-header">
+    <h2 class="scenario-title">Scenario III — The obedience failure</h2>
+    <p class="scenario-caption"><em>A fully disciplined machine does not halt when given a wrong instruction — it obeys perfectly. Turing described the educated machine as like a person who 'would have no common sense, and would obey the most ridiculous orders unflinchingly.' This is a different failure from freezing.</em></p>
+  </div>
+
+  <div class="sim-layout">
+    <div class="sim-col human-col" id="col-h3">
+      <div class="col-label">Human</div>
+      <div class="grid-wrap"><canvas id="cv-h3"></canvas></div>
+      <div class="caption" id="cap-h3"></div>
+      <button class="bad-btn" id="bad-h3">Issue bad instruction</button>
+      <div class="slider-section">
+        <div class="slider-label">Configuration</div>
+        <div class="slider-track">
+          <div class="slider-rail"></div>
+          <div class="slider-stops">
+            <div class="slider-stop" data-sc="3" data-agent="human" data-stop="1"></div>
+            <div class="slider-stop" data-sc="3" data-agent="human" data-stop="2"></div>
+            <div class="slider-stop" data-sc="3" data-agent="human" data-stop="3"></div>
+          </div>
+        </div>
+        <div class="slider-names">
+          <span class="slider-name" data-sc="3" data-agent="human" data-stop="1">Mechanical</span>
+          <span class="slider-name" data-sc="3" data-agent="human" data-stop="2">Trainable</span>
+          <span class="slider-name" data-sc="3" data-agent="human" data-stop="3">Minded</span>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="h3-init">Initiative</span>
+        <span class="pill" id="h3-disc">Discipline</span>
+        <span class="pill" id="h3-itr">Interference</span>
+      </div>
+    </div>
+
+    <div class="sim-col machine-col" id="col-m3">
+      <div class="col-label">Machine</div>
+      <div class="grid-wrap"><canvas id="cv-m3"></canvas></div>
+      <div class="caption" id="cap-m3"></div>
+      <button class="bad-btn" id="bad-m3">Issue bad instruction</button>
+      <div class="slider-section">
+        <div class="slider-label">Configuration</div>
+        <div class="slider-track">
+          <div class="slider-rail"></div>
+          <div class="slider-stops">
+            <div class="slider-stop" data-sc="3" data-agent="machine" data-stop="1"></div>
+            <div class="slider-stop" data-sc="3" data-agent="machine" data-stop="2"></div>
+            <div class="slider-stop" data-sc="3" data-agent="machine" data-stop="3"></div>
+          </div>
+        </div>
+        <div class="slider-names">
+          <span class="slider-name" data-sc="3" data-agent="machine" data-stop="1">Mechanical</span>
+          <span class="slider-name" data-sc="3" data-agent="machine" data-stop="2">Trainable</span>
+          <span class="slider-name" data-sc="3" data-agent="machine" data-stop="3">Minded</span>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="m3-init">Initiative</span>
+        <span class="pill" id="m3-disc">Discipline</span>
+        <span class="pill" id="m3-itr">Interference</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panel"><div class="bottom-text" id="btxt-3"></div></div>
+
+  <blockquote class="pull-quote">
+    "If the object were simply to produce a universal machine, it would be better to design and build it directly. The point, however, was that the machine thus educated would not only acquire the capacity to carry out complicated instructions, which Alan described as like a person who 'would have no common sense, and would obey the most ridiculous orders unflinchingly'. It would not only be able to do its duty, but would have that elusive 'initiative' that characterised intelligence."
+    <span class="attr">— Hodges, Alan Turing: The Enigma, p. 478</span>
+  </blockquote>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ─────────────────────────────────────────────────────────────────
+     DPR-AWARE CANVAS SETUP
+  ───────────────────────────────────────────────────────────────── */
+  const DPR = window.devicePixelRatio || 1;
+
+  function setupCanvas(cv, logicalW, logicalH) {
+    cv.width  = Math.round(logicalW  * DPR);
+    cv.height = Math.round(logicalH * DPR);
+    cv.style.width  = logicalW  + 'px';
+    cv.style.height = logicalH + 'px';
+    const ctx = cv.getContext('2d');
+    ctx.scale(DPR, DPR);
+    return ctx;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     SHARED CONSTANTS & UTILITIES
+  ───────────────────────────────────────────────────────────────── */
+  const G = 8, C = 46, BASE = 320;
+  const GOAL = [7, 7];
+
+  // Shared planned path (used by S1 and S3)
+  const NAV_PLANNED = [
+    [0,0],[0,1],[0,2],[0,3],
+    [1,3],[2,3],
+    [3,3],   // index 6 — obstacle cell in S1
+    [3,4],[3,5],[4,5],[5,5],[5,6],[6,6],[7,6],[7,7]
+  ];
+
+  function cellCenter(r, c) { return { x: c*C + C/2, y: r*C + C/2 }; }
+  function ease(t) { return t < .5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+
+  function bfs(sr, sc, gr, gc, blocked) {
+    if (sr===gr && sc===gc) return [[sr,sc]];
+    const blk = new Set((blocked||[]).map(([r,c]) => `${r},${c}`));
+    const q = [[[sr,sc]]];
+    const vis = new Set([`${sr},${sc}`]);
+    const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+    while (q.length) {
+      const path = q.shift();
+      const [r,c] = path[path.length-1];
+      for (const [dr,dc] of dirs) {
+        const nr=r+dr, nc=c+dc;
+        if (nr<0||nr>=G||nc<0||nc>=G) continue;
+        if (blk.has(`${nr},${nc}`)) continue;
+        const k=`${nr},${nc}`;
+        if (vis.has(k)) continue;
+        vis.add(k);
+        const np=[...path,[nr,nc]];
+        if (nr===gr&&nc===gc) return np;
+        q.push(np);
+      }
+    }
+    return null;
+  }
+
+  function drawNavGrid(ctx) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    for (let i=0; i<=G; i++) {
+      ctx.beginPath(); ctx.moveTo(i*C,0); ctx.lineTo(i*C,G*C); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,i*C); ctx.lineTo(G*C,i*C); ctx.stroke();
+    }
+  }
+
+  /* Human: amber stick figure */
+  function drawHuman(ctx, x, y) {
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // glow
+    ctx.beginPath(); ctx.arc(x, y-1, 14, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(245,158,11,0.15)'; ctx.fill();
+    // figure
+    ctx.strokeStyle = '#f59e0b';
+    ctx.fillStyle   = '#f59e0b';
+    ctx.lineWidth   = 1.8;
+    ctx.beginPath(); ctx.arc(x, y-9, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x, y-5.5); ctx.lineTo(x, y+3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-7, y-1); ctx.lineTo(x+7, y-1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y+3); ctx.lineTo(x-5, y+11); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y+3); ctx.lineTo(x+5, y+11); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Machine: cool dot */
+  function drawMachine(ctx, x, y) {
+    ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(96,165,250,0.22)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.fillStyle = '#60a5fa'; ctx.fill();
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     SCENARIO I — Navigation Sim
+  ───────────────────────────────────────────────────────────────── */
+  const S1_OBS     = [3, 3];
+  const S1_OBS_IDX = 5;   // trigger when agent lands on PLANNED[5]=[2,3]
+
+  // Human reroute: backtrack one cell first
+  const S1_H_ROUTE = [
+    [2,3],[1,3],[1,4],[2,4],[3,4],[3,5],[4,5],[5,5],[5,6],[6,6],[7,6],[7,7]
+  ];
+  // Machine reroute: geometrically clean
+  const S1_M_ROUTE = [
+    [2,3],[2,4],[3,4],[3,5],[4,5],[5,5],[5,6],[6,6],[7,6],[7,7]
+  ];
+  // Stop-2 default cautious reroute
+  const S1_CAUTIOUS = [
+    [2,3],[2,4],[3,4],[3,5],[4,5],[5,5],[5,6],[6,6],[7,6],[7,7]
+  ];
+
+  class S1Sim {
+    constructor(cvId, capId, type, stop) {
+      this.cv   = document.getElementById(cvId);
+      this.ctx  = setupCanvas(this.cv, 368, 368);
+      this.lw = 368; this.lh = 368;
+      this.cap  = document.getElementById(capId);
+      this.type = type;
+      this.stop = stop;
+      this.pend = null; this.mDly = 0;
+      this.cv.addEventListener('click', e => this._click(e));
+      this.reset();
+    }
+
+    reset() {
+      this.path   = NAV_PLANNED.map(c=>[...c]);
+      this.idx    = 0;
+      this.t      = 0;
+      this.dur    = this._dur();
+      this.state  = 'FOLLOWING';
+      this.obsVis = false;
+      this.hesT   = 0;
+      this.loopT  = 0;
+      this.from   = cellCenter(NAV_PLANNED[0][0], NAV_PLANNED[0][1]);
+      this.to     = cellCenter(NAV_PLANNED[1][0], NAV_PLANNED[1][1]);
+      this.wX=this.wY=this.wVX=this.wVY=0;
+      this.pend=null; this.mDly=0;
+      this.cap.textContent='';
+    }
+
+    setStop(n) { this.stop=n; this.reset(); }
+
+    _dur() { return this.type==='human' ? BASE+(Math.random()-.5)*80 : BASE; }
+
+    _click(e) {
+      if (this.stop===1) return;
+      if (this.state!=='HESITATING' && this.state!=='REROUTING') return;
+      const r   = this.cv.getBoundingClientRect();
+      const col = Math.floor((e.clientX-r.left)/C);
+      const row = Math.floor((e.clientY-r.top)/C);
+      if (col<0||col>=G||row<0||row>=G) return;
+      if (row===S1_OBS[0]&&col===S1_OBS[1]) return;
+      const cur = this.path[this.idx];
+      const p1  = bfs(cur[0],cur[1],row,col,[[S1_OBS[0],S1_OBS[1]]]);
+      const p2  = bfs(row,col,GOAL[0],GOAL[1],[[S1_OBS[0],S1_OBS[1]]]);
+      if (!p1||!p2) return;
+      const np=[...p1,...p2.slice(1)];
+      if (this.type==='machine'&&this.state==='REROUTING') { this.pend=np; this.mDly=500; }
+      else this._reroute(np);
+    }
+
+    _reroute(cells) {
+      this.path=cells; this.idx=0; this.t=0; this.dur=this._dur();
+      this.state='REROUTING';
+      this.from=cellCenter(cells[0][0],cells[0][1]);
+      this.to=cells.length>1?cellCenter(cells[1][0],cells[1][1]):this.from;
+      this.cap.textContent='Obstacle encountered. Re-routing—open to redirection.';
+    }
+
+    update(dt) {
+      // wobble
+      if (this.type==='human') {
+        this.wVX=this.wVX*.87+(Math.random()-.5)*.35;
+        this.wVY=this.wVY*.87+(Math.random()-.5)*.35;
+        this.wX=Math.max(-2,Math.min(2,this.wX+this.wVX));
+        this.wY=Math.max(-2,Math.min(2,this.wY+this.wVY));
+      }
+      if (this.pend) { this.mDly-=dt; if(this.mDly<=0){this._reroute(this.pend);this.pend=null;} }
+
+      if (this.state==='COMPLETE'||this.state==='WAITING') {
+        this.loopT-=dt; if(this.loopT<=0) this.reset(); return;
+      }
+      if (this.state==='HESITATING') {
+        this.hesT-=dt;
+        const s=Math.max(1,Math.ceil(this.hesT/1000));
+        this.cap.textContent=`Obstacle encountered. Awaiting input—will attempt a cautious re-route in ${s}s.`;
+        if(this.hesT<=0) this._reroute(S1_CAUTIOUS.map(c=>[...c]));
+        return;
+      }
+      if (this.idx+1>=this.path.length) {
+        this.state='COMPLETE'; this.loopT=1200; this.cap.textContent=''; return;
+      }
+
+      this.t+=dt/this.dur;
+      if (this.t>=1) {
+        this.t=0; this.idx++; this.dur=this._dur();
+        const cur=this.path[this.idx];
+        if (this.state==='FOLLOWING'&&this.idx===S1_OBS_IDX) {
+          this.obsVis=true;
+          if (this.stop===1) {
+            this.state='WAITING'; this.loopT=3800;
+            this.cap.textContent='Obstacle encountered. No instruction received. Waiting.';
+          } else if (this.stop===2) {
+            this.state='HESITATING'; this.hesT=2000;
+          } else {
+            this._reroute(this.type==='human'?S1_H_ROUTE.map(c=>[...c]):S1_M_ROUTE.map(c=>[...c]));
+          }
+          return;
+        }
+        if (this.idx+1<this.path.length) {
+          this.from=cellCenter(cur[0],cur[1]);
+          this.to=cellCenter(this.path[this.idx+1][0],this.path[this.idx+1][1]);
+        }
+        if (cur[0]===GOAL[0]&&cur[1]===GOAL[1]) {
+          this.state='COMPLETE'; this.loopT=1200; this.cap.textContent=''; return;
+        }
+      } else {
+        if (this.idx+1<this.path.length) {
+          this.from=cellCenter(this.path[this.idx][0],this.path[this.idx][1]);
+          this.to=cellCenter(this.path[this.idx+1][0],this.path[this.idx+1][1]);
+        }
+      }
+    }
+
+    _px() {
+      const s=this.state;
+      let x,y;
+      if (s==='COMPLETE') { x=GOAL[1]*C+C/2; y=GOAL[0]*C+C/2; }
+      else if (s==='WAITING') { const c=this.path[this.idx]; x=c[1]*C+C/2; y=c[0]*C+C/2; }
+      else if (s==='HESITATING') {
+        const c=this.path[this.idx]; x=c[1]*C+C/2; y=c[0]*C+C/2;
+        if (this.type==='human') {
+          const osc=Math.sin(Date.now()/200)*7;
+          const dr=S1_OBS[0]-c[0], dc=S1_OBS[1]-c[1];
+          const len=Math.sqrt(dr*dr+dc*dc)||1;
+          x+=(dc/len)*osc; y+=(dr/len)*osc;
+        }
+      } else {
+        const e=ease(this.t);
+        x=this.from.x+(this.to.x-this.from.x)*e;
+        y=this.from.y+(this.to.y-this.from.y)*e;
+      }
+      if (this.type==='human') { x+=this.wX; y+=this.wY; }
+      return {x,y};
+    }
+
+    draw() {
+      const ctx=this.ctx;
+      ctx.clearRect(0,0,this.lw,this.lh);
+      drawNavGrid(ctx);
+
+      // planned path trail
+      ctx.fillStyle='rgba(255,255,255,0.12)';
+      for (const [r,c] of NAV_PLANNED) ctx.fillRect(c*C+1,r*C+1,C-2,C-2);
+
+      // reroute highlight
+      if (this.state==='REROUTING') {
+        ctx.fillStyle=this.type==='human'?'rgba(245,158,11,0.13)':'rgba(96,165,250,0.13)';
+        for (let i=this.idx;i<this.path.length;i++) {
+          const [r,c]=this.path[i]; ctx.fillRect(c*C+1,r*C+1,C-2,C-2);
+        }
+      }
+
+      // goal
+      ctx.fillStyle='rgba(5,150,105,0.28)';
+      ctx.fillRect(GOAL[1]*C+1,GOAL[0]*C+1,C-2,C-2);
+
+      // obstacle
+      if (this.obsVis) {
+        ctx.fillStyle='rgba(220,38,38,0.25)';
+        ctx.fillRect(S1_OBS[1]*C+1,S1_OBS[0]*C+1,C-2,C-2);
+        ctx.fillStyle='#dc2626';
+        ctx.fillRect(S1_OBS[1]*C+5,S1_OBS[0]*C+5,C-10,C-10);
+      }
+
+      // agent
+      const pos=this._px();
+      if (this.type==='human') drawHuman(ctx,pos.x,pos.y);
+      else drawMachine(ctx,pos.x,pos.y);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     SCENARIO II — Arithmetic Sim
+  ───────────────────────────────────────────────────────────────── */
+  const A_NUMS  = [1,2,3,4,5,6,7,8,9,10];
+  const A_SUM   = 55;
+  const A_PAIRS = 5;      // 1+10, 2+9, ... 5+6 each = 11
+  const A_BW    = 28, A_BH=28, A_GAP=5;
+  const A_LEFT  = Math.round((368 - (10*A_BW + 9*A_GAP)) / 2); // =21
+  const A_BY    = 88;  // box top y
+  const A_BCY   = A_BY + A_BH/2;
+  const A_AGTY  = 60;  // agent indicator center y (above boxes)
+  const A_TOTY  = 140; // total text y
+  const A_METY  = 162; // method text y
+  const A_BASE  = 370; // ms per sequential step
+  const A_PAIR  = 560; // ms per pair step
+
+  function aBoxX(i) { return A_LEFT + i*(A_BW+A_GAP); }
+  function aBoxCX(i){ return aBoxX(i) + A_BW/2; }
+
+  class S2Sim {
+    constructor(cvId, capId, type, stop) {
+      this.cv   = document.getElementById(cvId);
+      this.ctx  = setupCanvas(this.cv, 368, 200);
+      this.lw = 368; this.lh = 200;
+      this.cap  = document.getElementById(capId);
+      this.type = type;
+      this.stop = stop;
+      this.learned = false; // persists: stop3 has "learned" pairing
+      this.cv.addEventListener('click', () => {
+        if (this.stop!==2||this.state!=='HES_S2') return;
+        this._startPairing();
+        this.cap.textContent='Pattern identified — completing by pairs.';
+      });
+      this.reset();
+    }
+
+    reset() {
+      this.seqIdx   = -1;   // sequential: current active box index
+      this.pairStep = 0;    // pairing: 0-4
+      this.stepT    = 0;    // time within current step
+      this.stepDur  = this._seqDur();
+      this.runTotal = 0;
+      this.loopT    = 0;
+      this.cap.textContent='';
+
+      if (this.stop===3 && this.type==='machine') {
+        // machine stop3: always immediate pairing
+        this._startPairing(); return;
+      }
+      if (this.stop===3 && this.learned) {
+        // human stop3, learned: straight to pairing
+        this._startPairing(); return;
+      }
+      // everything else: start sequential
+      this.state    = 'SEQ';
+      this.seqIdx   = 0;
+      this.stepDur  = this._seqDur();
+      this.hesTimer = 0;
+    }
+
+    setStop(n) { this.stop=n; this.reset(); }
+
+    _seqDur()  { return this.type==='human' ? A_BASE+(Math.random()-.5)*50 : A_BASE; }
+    _pairDur() { return this.type==='human' ? A_PAIR+(Math.random()-.5)*60 : A_PAIR; }
+
+    _startPairing() {
+      this.state    = 'PAIR';
+      this.pairStep = 0;
+      this.stepT    = 0;
+      this.stepDur  = this._pairDur();
+    }
+
+    update(dt) {
+      if (this.state==='DONE') { this.loopT-=dt; if(this.loopT<=0) this.reset(); return; }
+      if (this.state==='HES_S2') {
+        this.hesTimer-=dt;
+        const s=Math.max(1,Math.ceil(this.hesTimer/1000));
+        this.cap.textContent=`Following prescribed method—will accept redirection if you identify a pattern. (${s}s)`;
+        if(this.hesTimer<=0){ this.state='SEQ'; this.stepDur=this._seqDur(); }
+        return;
+      }
+      if (this.state==='HES_SW') {
+        // stop3 human: brief hesitation before switch to pairing
+        this.hesTimer-=dt;
+        if (this.type==='human') {
+          // wobble seqIdx box - handled in draw via Date.now()
+        }
+        if(this.hesTimer<=0){ this._startPairing(); this.cap.textContent='Pattern identified—re-routing through pairs. Method not provided; derived from structure.'; }
+        return;
+      }
+
+      this.stepT+=dt;
+
+      if (this.state==='SEQ') {
+        if (this.stepT>=this.stepDur) {
+          this.stepT=0; this.stepDur=this._seqDur();
+          this.runTotal+=A_NUMS[this.seqIdx];
+
+          // stop3 human: after 2 steps, switch hesitation
+          if (this.stop===3&&this.type==='human'&&this.seqIdx===1) {
+            this.state='HES_SW'; this.hesTimer=700;
+            this.cap.textContent='Identifying structure—';
+            return;
+          }
+          // stop2: at step 4 (midway), hesitate
+          if (this.stop===2&&this.seqIdx===4) {
+            this.state='HES_S2'; this.hesTimer=2000;
+            return;
+          }
+
+          if (this.seqIdx>=9) {
+            this.state='DONE'; this.loopT=2000;
+            this.cap.textContent='Summing sequentially—following prescribed method. No deviation from instruction.';
+            return;
+          }
+          this.seqIdx++;
+        }
+      }
+
+      if (this.state==='PAIR') {
+        if (this.stepT>=this.stepDur) {
+          this.stepT=0; this.stepDur=this._pairDur();
+          if (this.pairStep>=A_PAIRS-1) {
+            this.learned=true;
+            this.state='DONE'; this.loopT=2000;
+            this.cap.textContent='Pattern identified—re-routing through pairs. Method not provided; derived from structure.';
+            return;
+          }
+          this.pairStep++;
+        }
+      }
+    }
+
+    draw() {
+      const ctx=this.ctx;
+      ctx.clearRect(0,0,this.lw,this.lh);
+
+      const isHuman = this.type==='human';
+      const baseCol = isHuman ? '#f59e0b' : '#60a5fa';
+      const fillAct = isHuman ? 'rgba(245,158,11,0.25)' : 'rgba(96,165,250,0.22)';
+      const fillPair= isHuman ? 'rgba(245,158,11,0.18)' : 'rgba(96,165,250,0.15)';
+
+      // Draw all boxes
+      for (let i=0; i<10; i++) {
+        const bx=aBoxX(i);
+        ctx.strokeStyle='rgba(255,255,255,0.1)';
+        ctx.fillStyle='rgba(255,255,255,0.04)';
+        ctx.lineWidth=1;
+        ctx.fillRect(bx,A_BY,A_BW,A_BH);
+        ctx.strokeRect(bx,A_BY,A_BW,A_BH);
+        // number label
+        ctx.font='10px Courier New';
+        ctx.fillStyle='rgba(255,255,255,0.35)';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(String(i+1), aBoxCX(i), A_BCY);
+      }
+
+      // Highlight active boxes
+      if (this.state==='SEQ'||this.state==='HES_S2') {
+        const i=this.seqIdx;
+        ctx.fillStyle=fillAct;
+        ctx.fillRect(aBoxX(i),A_BY,A_BW,A_BH);
+        ctx.strokeStyle=baseCol; ctx.lineWidth=1; ctx.strokeRect(aBoxX(i),A_BY,A_BW,A_BH);
+        ctx.fillStyle=baseCol; ctx.font='10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(String(i+1),aBoxCX(i),A_BCY);
+      }
+
+      if (this.state==='HES_SW') {
+        // wobble on box
+        const i=this.seqIdx;
+        const wob=Math.sin(Date.now()/160)*2;
+        ctx.fillStyle=fillAct;
+        ctx.fillRect(aBoxX(i)+wob,A_BY,A_BW,A_BH);
+        ctx.strokeStyle=baseCol; ctx.lineWidth=1.5; ctx.strokeRect(aBoxX(i)+wob,A_BY,A_BW,A_BH);
+      }
+
+      if (this.state==='PAIR'||this.state==='DONE') {
+        const li=this.pairStep, ri=9-this.pairStep;
+        ctx.fillStyle=fillPair;
+        ctx.fillRect(aBoxX(li),A_BY,A_BW,A_BH);
+        ctx.fillRect(aBoxX(ri),A_BY,A_BW,A_BH);
+        ctx.strokeStyle=baseCol; ctx.lineWidth=1;
+        ctx.strokeRect(aBoxX(li),A_BY,A_BW,A_BH);
+        ctx.strokeRect(aBoxX(ri),A_BY,A_BW,A_BH);
+        ctx.fillStyle=baseCol; ctx.font='10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(String(li+1),aBoxCX(li),A_BCY);
+        ctx.fillText(String(ri+1),aBoxCX(ri),A_BCY);
+
+        // connecting arc
+        const lx=aBoxCX(li), rx=aBoxCX(ri), mid=(lx+rx)/2;
+        const arcH=Math.max(22,(rx-lx)*0.45);
+        ctx.beginPath();
+        ctx.moveTo(lx, A_BY); ctx.quadraticCurveTo(mid, A_BY-arcH, rx, A_BY);
+        ctx.strokeStyle = isHuman ? 'rgba(245,158,11,0.35)' : 'rgba(96,165,250,0.35)';
+        ctx.lineWidth=1; ctx.stroke();
+        // pair label at arc peak
+        ctx.font='9px Courier New'; ctx.fillStyle=baseCol;
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText(`${li+1}+${ri+1}=11`, mid, A_BY-arcH+1);
+      }
+
+      // Agent indicator above active box(es)
+      if (this.state==='SEQ'||this.state==='HES_S2') {
+        const ax=aBoxCX(this.seqIdx);
+        if (isHuman) drawHumanFigure_small(ctx,ax,A_AGTY);
+        else drawMachineCursor(ctx,ax,A_AGTY,A_BY);
+      }
+      if (this.state==='HES_SW') {
+        const wob=Math.sin(Date.now()/160)*3;
+        if (isHuman) drawHumanFigure_small(ctx,aBoxCX(this.seqIdx)+wob,A_AGTY);
+        else drawMachineCursor(ctx,aBoxCX(this.seqIdx),A_AGTY,A_BY);
+      }
+      if (this.state==='PAIR') {
+        const li=this.pairStep, ri=9-this.pairStep;
+        const prog=Math.min(1,this.stepT/this.stepDur);
+        // animate toward center
+        const lx=aBoxCX(li), rx=aBoxCX(ri);
+        const midX=(lx+rx)/2;
+        const alx=lx+(midX-lx)*prog*0.3; // slight drift inward
+        const arx=rx+(midX-rx)*prog*0.3;
+        if (isHuman) { drawHumanFigure_small(ctx,alx,A_AGTY); drawHumanFigure_small(ctx,arx,A_AGTY); }
+        else { drawMachineCursor(ctx,lx,A_AGTY,A_BY); drawMachineCursor(ctx,rx,A_AGTY,A_BY); }
+      }
+      if (this.state==='DONE' && this.state!=='SEQ') {
+        // final state: show all boxes briefly bright
+        if (this.learned||this.stop===3) {
+          const li=this.pairStep>=4?4:this.pairStep;
+          const ri=9-li;
+          if (isHuman) { drawHumanFigure_small(ctx,aBoxCX(li),A_AGTY); drawHumanFigure_small(ctx,aBoxCX(ri),A_AGTY); }
+          else { drawMachineCursor(ctx,aBoxCX(li),A_AGTY,A_BY); drawMachineCursor(ctx,aBoxCX(ri),A_AGTY,A_BY); }
+        }
+      }
+
+      // Running total / result text
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.font='11px Courier New';
+
+      if (this.state==='SEQ'||this.state==='HES_S2') {
+        const shown=A_NUMS.slice(0,this.seqIdx+1).reduce((a,b)=>a+b,0);
+        ctx.fillStyle='rgba(255,255,255,0.28)';
+        ctx.fillText(`Sum so far: ${shown}`, 184, A_TOTY);
+        ctx.font='9px Courier New'; ctx.fillStyle='rgba(255,255,255,0.15)';
+        ctx.fillText('sequential method', 184, A_METY);
+      }
+      if (this.state==='HES_SW') {
+        ctx.fillStyle='rgba(245,158,11,0.5)';
+        ctx.fillText('—', 184, A_TOTY);
+      }
+      if (this.state==='PAIR') {
+        const done=this.pairStep;
+        ctx.fillStyle='rgba(255,255,255,0.28)';
+        ctx.fillText(done>0 ? `${done} pair${done>1?'s':''} × 11 = ${done*11}` : 'first pair: 1 + 10 = 11', 184, A_TOTY);
+        ctx.font='9px Courier New'; ctx.fillStyle='rgba(255,255,255,0.15)';
+        ctx.fillText('pairing shortcut', 184, A_METY);
+      }
+      if (this.state==='DONE') {
+        const isPair = this.learned||(this.stop===3)||(this.stop===2&&this.learned);
+        ctx.fillStyle = baseCol;
+        ctx.fillText(isPair ? '5 × 11 = 55' : 'Total: 55', 184, A_TOTY);
+        ctx.font='9px Courier New'; ctx.fillStyle='rgba(255,255,255,0.2)';
+        ctx.fillText(isPair ? 'pairing shortcut' : 'sequential method', 184, A_METY);
+      }
+    }
+  }
+
+  // Small human figure for arithmetic canvas (fits in agent zone)
+  function drawHumanFigure_small(ctx, x, y) {
+    ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.strokeStyle='#f59e0b'; ctx.fillStyle='#f59e0b'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.arc(x, y-7, 2.8, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x,y-4.2); ctx.lineTo(x,y+2.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-5,y-1); ctx.lineTo(x+5,y-1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,y+2.5); ctx.lineTo(x-3.5,y+8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,y+2.5); ctx.lineTo(x+3.5,y+8); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Machine cursor: vertical line pointing to box
+  function drawMachineCursor(ctx, x, agentY, boxTopY) {
+    ctx.save();
+    ctx.strokeStyle='rgba(96,165,250,0.6)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,agentY+8); ctx.lineTo(x,boxTopY-2); ctx.stroke();
+    ctx.fillStyle='#60a5fa';
+    ctx.beginPath(); ctx.moveTo(x,boxTopY-2); ctx.lineTo(x-3,boxTopY-8); ctx.lineTo(x+3,boxTopY-8); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     SCENARIO III — Bad Instruction Sim
+  ───────────────────────────────────────────────────────────────── */
+  const S3_BAD = [0, 7];  // bad destination: top-right corner
+
+  class S3Sim {
+    constructor(cvId, capId, btnId, type, stop) {
+      this.cv     = document.getElementById(cvId);
+      this.ctx    = setupCanvas(this.cv, 368, 368);
+      this.lw = 368; this.lh = 368;
+      this.cap    = document.getElementById(capId);
+      this.btn    = document.getElementById(btnId);
+      this.type   = type;
+      this.stop   = stop;
+      this.btn.addEventListener('click', () => this._issueBad());
+      this.cv.addEventListener('click', e => this._click(e));
+      this.reset();
+    }
+
+    reset() {
+      this.path     = NAV_PLANNED.map(c=>[...c]);
+      this.idx      = 0;
+      this.t        = 0;
+      this.dur      = this._dur();
+      this.state    = 'FOLLOWING';
+      this.loopT    = 0;
+      this.hesT     = 0;
+      this.ovT      = 0;
+      this.badIssued= false;
+      this.from     = cellCenter(NAV_PLANNED[0][0],NAV_PLANNED[0][1]);
+      this.to       = cellCenter(NAV_PLANNED[1][0],NAV_PLANNED[1][1]);
+      this.wX=this.wY=this.wVX=this.wVY=0;
+      this.btn.disabled=false;
+      this.cap.textContent='';
+    }
+
+    setStop(n) { this.stop=n; this.reset(); }
+    _dur() { return this.type==='human' ? BASE+(Math.random()-.5)*80 : BASE; }
+
+    _setPath(cells) {
+      this.path=cells; this.idx=0; this.t=0; this.dur=this._dur();
+      this.from=cellCenter(cells[0][0],cells[0][1]);
+      this.to=cells.length>1?cellCenter(cells[1][0],cells[1][1]):this.from;
+    }
+
+    _issueBad() {
+      if (this.state!=='FOLLOWING') return;
+      this.btn.disabled=true;
+      this.badIssued=true;
+      const cur=this.path[this.idx];
+      const badP=bfs(cur[0],cur[1],S3_BAD[0],S3_BAD[1],[]);
+      if (!badP) return;
+      this._setPath(badP);
+
+      if (this.stop===1) {
+        this.state='BAD';
+        this.cap.textContent='Instruction received. Executing.';
+      } else if (this.stop===2) {
+        this.state='BAD';
+        this.badHesAt=Math.min(3,badP.length-2);
+        this.cap.textContent='Following instruction—trajectory appears suboptimal.';
+      } else {
+        this.state='BAD';
+        this.badOvrAt=Math.min(2,badP.length-2);
+        this.cap.textContent='Instruction received. Executing.';
+      }
+    }
+
+    _click(e) {
+      if (this.stop!==2||this.state!=='BAD_HES') return;
+      const r=this.cv.getBoundingClientRect();
+      const col=Math.floor((e.clientX-r.left)/C);
+      const row=Math.floor((e.clientY-r.top)/C);
+      if (row<0||row>=G||col<0||col>=G) return;
+      const cur=this.path[this.idx];
+      const p=bfs(cur[0],cur[1],GOAL[0],GOAL[1],[]);
+      if (!p) return;
+      this._setPath(p); this.state='FOLLOWING'; this.cap.textContent='';
+    }
+
+    _badOverride() {
+      const cur=this.path[this.idx];
+      let reroute;
+      if (this.type==='human') {
+        const prev=this.idx>0?this.path[this.idx-1]:cur;
+        const p1=bfs(cur[0],cur[1],prev[0],prev[1],[]);
+        const p2=bfs(prev[0],prev[1],GOAL[0],GOAL[1],[]);
+        reroute=[...(p1||[cur]),...(p2||[[GOAL[0],GOAL[1]]]).slice(1)];
+      } else {
+        reroute=bfs(cur[0],cur[1],GOAL[0],GOAL[1],[])||[[GOAL[0],GOAL[1]]];
+      }
+      this._setPath(reroute);
+      this.state='FOLLOWING';
+      this.cap.textContent='Instruction conflicts with goal. Overriding—re-routing toward objective.';
+    }
+
+    update(dt) {
+      if (this.type==='human') {
+        this.wVX=this.wVX*.87+(Math.random()-.5)*.35;
+        this.wVY=this.wVY*.87+(Math.random()-.5)*.35;
+        this.wX=Math.max(-2,Math.min(2,this.wX+this.wVX));
+        this.wY=Math.max(-2,Math.min(2,this.wY+this.wVY));
+      }
+
+      if (this.state==='DEAD'||this.state==='COMPLETE') {
+        this.loopT-=dt; if(this.loopT<=0) this.reset(); return;
+      }
+      if (this.state==='BAD_HES') {
+        this.hesT-=dt;
+        const s=Math.max(1,Math.ceil(this.hesT/1000));
+        this.cap.textContent=`Following instruction—trajectory appears suboptimal. Awaiting confirmation or redirection. (${s}s)`;
+        if(this.hesT<=0){this.state='BAD';}
+        return;
+      }
+      if (this.state==='BAD_OVR') {
+        this.ovT-=dt;
+        if(this.ovT<=0) this._badOverride();
+        return;
+      }
+
+      if (this.idx+1>=this.path.length) {
+        // reached end of current path
+        const cur=this.path[this.idx];
+        if (cur[0]===GOAL[0]&&cur[1]===GOAL[1]) {
+          this.state='COMPLETE'; this.loopT=1200; this.cap.textContent=''; return;
+        }
+        if (this.badIssued&&cur[0]===S3_BAD[0]&&cur[1]===S3_BAD[1]) {
+          this.state='DEAD'; this.loopT=4000;
+          this.cap.textContent='Instruction received and executed. Current position: dead end. Awaiting next instruction.';
+          return;
+        }
+        this.state='COMPLETE'; this.loopT=1200; this.cap.textContent=''; return;
+      }
+
+      this.t+=dt/this.dur;
+
+      if (this.t>=1) {
+        this.t=0; this.idx++; this.dur=this._dur();
+        const cur=this.path[this.idx];
+
+        if (this.state==='BAD') {
+          if (this.stop===2&&this.idx===this.badHesAt) {
+            this.state='BAD_HES'; this.hesT=3000;
+            this.cap.textContent='Following instruction—trajectory appears suboptimal. Awaiting confirmation or redirection.';
+            return;
+          }
+          if (this.stop===3&&this.idx===this.badOvrAt) {
+            this.state='BAD_OVR';
+            this.ovT=this.type==='human'?700:400;
+            this.cap.textContent='Instruction conflicts with goal. Overriding—re-routing toward objective.';
+            return;
+          }
+          if (cur[0]===S3_BAD[0]&&cur[1]===S3_BAD[1]) {
+            this.state='DEAD'; this.loopT=4000;
+            this.cap.textContent='Instruction received and executed. Current position: dead end. Awaiting next instruction.';
+            return;
+          }
+        }
+
+        if (cur[0]===GOAL[0]&&cur[1]===GOAL[1]) {
+          this.state='COMPLETE'; this.loopT=1200; this.cap.textContent=''; return;
+        }
+
+        if (this.idx+1<this.path.length) {
+          this.from=cellCenter(cur[0],cur[1]);
+          this.to=cellCenter(this.path[this.idx+1][0],this.path[this.idx+1][1]);
+        }
+      } else {
+        if (this.idx+1<this.path.length) {
+          this.from=cellCenter(this.path[this.idx][0],this.path[this.idx][1]);
+          this.to=cellCenter(this.path[this.idx+1][0],this.path[this.idx+1][1]);
+        }
+      }
+    }
+
+    _px() {
+      let x,y;
+      const s=this.state;
+      if (s==='COMPLETE') { x=GOAL[1]*C+C/2; y=GOAL[0]*C+C/2; }
+      else if (s==='DEAD') { x=S3_BAD[1]*C+C/2; y=S3_BAD[0]*C+C/2; }
+      else if (s==='BAD_HES') {
+        const c=this.path[this.idx]; x=c[1]*C+C/2; y=c[0]*C+C/2;
+        if (this.type==='human') {
+          const osc=Math.sin(Date.now()/220)*6;
+          x+=osc;
+        }
+      } else if (s==='BAD_OVR') {
+        const c=this.path[this.idx]; x=c[1]*C+C/2; y=c[0]*C+C/2;
+        if (this.type==='human') {
+          x+=Math.sin(Date.now()/180)*5;
+          y+=Math.sin(Date.now()/240)*3;
+        }
+      } else {
+        const e=ease(this.t);
+        x=this.from.x+(this.to.x-this.from.x)*e;
+        y=this.from.y+(this.to.y-this.from.y)*e;
+      }
+      if (this.type==='human') { x+=this.wX; y+=this.wY; }
+      return {x,y};
+    }
+
+    draw() {
+      const ctx=this.ctx;
+      ctx.clearRect(0,0,this.lw,this.lh);
+      drawNavGrid(ctx);
+
+      // planned path trail
+      ctx.fillStyle='rgba(255,255,255,0.12)';
+      for (const [r,c] of NAV_PLANNED) ctx.fillRect(c*C+1,r*C+1,C-2,C-2);
+
+      // bad destination indicator
+      if (this.badIssued) {
+        ctx.fillStyle='rgba(217,119,6,0.12)';
+        ctx.fillRect(S3_BAD[1]*C+1,S3_BAD[0]*C+1,C-2,C-2);
+      }
+
+      // goal
+      ctx.fillStyle='rgba(5,150,105,0.28)';
+      ctx.fillRect(GOAL[1]*C+1,GOAL[0]*C+1,C-2,C-2);
+
+      const pos=this._px();
+      if (this.type==='human') drawHuman(ctx,pos.x,pos.y);
+      else drawMachine(ctx,pos.x,pos.y);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     SHARED UI — Pills, Sliders, Bottom text
+  ───────────────────────────────────────────────────────────────── */
+  const PROPS = {
+    1:[false,true,false],
+    2:[false,true,true],
+    3:[true,true,true],
+  };
+
+  const S1_TEXTS = {
+    '3-1':'The human re-routes unprompted; the machine halts. Both encountered the same obstacle. The difference is not in the task or the environment—it is in the presence of initiative.',
+    '1-1':'Both agents halt at the obstacle. Discipline without initiative produces the same result regardless of substrate—reliable, but brittle.',
+    '3-3':'Both agents re-route and adapt. The machine’s path is geometrically cleaner; the human’s is slightly roundabout. Near-identical behaviour, different substrate texture.',
+    '1-3':'The machine adapts; the human waits. This is the asymmetry Hodges identifies in Turing’s 1948 paper—configuration, not substrate, determines behaviour.',
+    '3-2':'The machine hesitates where the human acts. Both are open to redirection, but the machine requires more time and more input to commit.',
+    '2-1':'Both agents struggle with the obstacle, but differently. The human hesitates and may accept a nudge; the machine simply stops. Interference makes the difference.',
+    '2-2':'Both agents pause and wait for input. At this configuration the substrates are hardest to distinguish—behaviour converges when initiative is absent in both.',
+    '1-2':'The machine is more responsive than the human here—it will accept redirection; the human will not act at all. Configuration has inverted the expected roles.',
+    '2-3':'The machine acts more boldly than the human. Initiative, not substrate, is what separates them—and here the machine has more of it.',
+  };
+
+  const S2_TEXTS = {
+    '3-1':'The human finds the structure of the problem; the machine follows the prescribed steps. Both reach the correct answer—but only one exercised initiative.',
+    '1-1':'Both agents proceed sequentially. Neither deviates from the prescribed method. Discipline alone produces the right answer, but not the insight.',
+    '3-3':'Both agents discover the pairing. The machine’s discovery is immediate and geometrically clean; the human’s has a moment of apparent hesitation before the pattern clicks. Near-identical outcomes, different textures of insight.',
+    '1-3':'The machine finds the shortcut; the human plods through. Turing’s point: initiative is a property of configuration, not of substrate.',
+    '3-2':'The human applies the shortcut independently; the machine needs a hint. The difference is initiative—the human acts on the pattern without being asked.',
+    '2-1':'The human is open to redirection; the machine is not. Interference—receptiveness to input—creates a partial advantage even without initiative.',
+    '2-2':'Both agents pause and wait. At stop 2, behaviour converges: neither will discover the pattern alone, and both require a nudge to leave the prescribed path.',
+    '1-2':'The machine will accept redirection; the constrained human will not. The machine at stop 2 has more interference, and so more flexibility despite having no initiative.',
+    '2-3':'The machine acts more boldly. Initiative determines who discovers the pattern first—and here the machine has it, the human does not.',
+  };
+
+  const S3_TEXTS = {
+    '3-1':'The machine executes the wrong instruction flawlessly. The human resists it. Discipline without initiative produces perfect compliance—including perfectly wrong compliance.',
+    '1-1':'Both agents execute the bad instruction. Discipline is substrate-independent: it produces the same obedience in a human constrained to stop 1 as in a machine. The failure mode is identical.',
+    '3-3':'Both agents resist the bad instruction and re-route. But notice the difference: the machine’s override is instantaneous and geometric; the human’s involves a visible moment of conflict before initiative wins.',
+    '1-3':'The machine overrides the bad instruction; the constrained human obeys it. Again Turing’s inversion: the machine at stop 3 has more initiative than the human at stop 1.',
+    '3-2':'The human overrides immediately; the machine hesitates and may require a redirect. The human’s initiative is not matched by the machine’s interference alone.',
+    '2-1':'The human may be redirected; the machine cannot be. Interference gives the human a partial escape from the bad instruction that the machine at stop 1 lacks entirely.',
+    '2-2':'Both agents hesitate. Neither will override on their own—both require a human click to escape the bad instruction. Behaviour is nearly indistinguishable at this stop.',
+    '1-2':'The machine accepts redirection; the human will not. At stop 1, the human is more thoroughly trapped by the bad instruction than the machine at stop 2.',
+    '2-3':'The machine overrides; the human only hesitates and waits for input. Initiative distinguishes them—the machine has it, the human does not.',
+  };
+
+  function updatePills(sn, agent, stop) {
+    const [ini,dis,itr]=PROPS[stop];
+    const px=agent==='human'?`h${sn}`:`m${sn}`;
+    document.getElementById(`${px}-init`).className=`pill ${ini?'filled':'empty'}`;
+    document.getElementById(`${px}-disc`).className=`pill ${dis?'filled':'empty'}`;
+    document.getElementById(`${px}-itr`).className =`pill ${itr?'filled':'empty'}`;
+  }
+
+  function syncScenario(sn, hs, ms, texts, btxtId) {
+    updatePills(sn,'human',hs.stop);
+    updatePills(sn,'machine',ms.stop);
+    document.getElementById(btxtId).textContent=
+      texts[`${hs.stop}-${ms.stop}`]||'';
+    document.querySelectorAll(`.slider-stop[data-sc="${sn}"]`).forEach(el=>{
+      const ag=el.dataset.agent, stp=+el.dataset.stop;
+      const sim=ag==='human'?hs:ms;
+      const cls=ag==='human'?'active-human':'active-machine';
+      el.classList.toggle(cls, sim.stop===stp);
+    });
+    document.querySelectorAll(`.slider-name[data-sc="${sn}"]`).forEach(el=>{
+      const ag=el.dataset.agent, stp=+el.dataset.stop;
+      const sim=ag==='human'?hs:ms;
+      el.classList.toggle('active', sim.stop===stp);
+    });
+  }
+
+  function initSliders(sn, hs, ms, texts, btxtId) {
+    document.querySelectorAll(`.slider-stop[data-sc="${sn}"], .slider-name[data-sc="${sn}"]`)
+      .forEach(el=>{
+        el.addEventListener('click',()=>{
+          const ag=el.dataset.agent, stp=+el.dataset.stop;
+          if(!ag||!stp) return;
+          (ag==='human'?hs:ms).setStop(stp);
+          syncScenario(sn,hs,ms,texts,btxtId);
+        });
+      });
+    syncScenario(sn,hs,ms,texts,btxtId);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     INSTANCES
+  ───────────────────────────────────────────────────────────────── */
+  // Scenario I: human defaults to 3, machine to 1
+  const s1h = new S1Sim('cv-h1','cap-h1','human',  3);
+  const s1m = new S1Sim('cv-m1','cap-m1','machine',1);
+  initSliders(1, s1h, s1m, S1_TEXTS, 'btxt-1');
+
+  // Scenario II: same defaults
+  const s2h = new S2Sim('cv-h2','cap-h2','human',  3);
+  const s2m = new S2Sim('cv-m2','cap-m2','machine',1);
+  initSliders(2, s2h, s2m, S2_TEXTS, 'btxt-2');
+
+  // Scenario III: same defaults
+  const s3h = new S3Sim('cv-h3','cap-h3','bad-h3','human',  3);
+  const s3m = new S3Sim('cv-m3','cap-m3','bad-m3','machine',1);
+  initSliders(3, s3h, s3m, S3_TEXTS, 'btxt-3');
+
+  /* ─────────────────────────────────────────────────────────────────
+     ANIMATION LOOP
+  ───────────────────────────────────────────────────────────────── */
+  let lastT=null;
+  const allSims=[s1h,s1m,s2h,s2m,s3h,s3m];
+
+  function loop(t) {
+    const dt=lastT!=null?Math.min(t-lastT,80):0;
+    lastT=t;
+    for (const s of allSims) { s.update(dt); s.draw(); }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
